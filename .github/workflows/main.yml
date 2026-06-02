@@ -15,14 +15,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. 克隆目标的开源项目源码
+      # 2. 克隆目标的开源项目源码（已修正分支为 itushan）
       - name: Checkout target repository
         uses: actions/checkout@v4
         with:
           repository: 'tsxcw/mtab' # 目标仓库
-          ref: 'master'           # 或者 'main'，取决于对方的主分支名
+          ref: 'itushan'          # 修正：指定拉取当前的 itushan 分支
 
-      # 3. 设置 Docker Buildx（用于加速和优化打包）
+      # 3. 设置 Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -32,7 +32,6 @@ jobs:
           # 转换用户名和仓库名为小写
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           
-          # 这里的 mtab 可以换成你喜欢的镜像名字
           IMAGE_NAME="ghcr.io/$OWNER/mtab:latest"
           
           echo "开始构建并推送镜像到: $IMAGE_NAME"
