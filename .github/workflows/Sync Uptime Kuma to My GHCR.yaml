@@ -3,13 +3,18 @@ name: Sync Uptime Kuma to My GHCR
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # 支持手动点击按钮触发
+  workflow_dispatch:
 
 jobs:
   sync-and-push:
     runs-on: ubuntu-latest
+    
+    # ====== 【关键修改：把 permissions 提到和 runs-on 平级】 ======
     permissions:
-      packages: write # 必须赋予写入 Packages 的权限
+      contents: read
+      packages: write
+      id-token: write
+    # ==========================================================
 
     steps:
       - name: Log in to GitHub Container Registry
@@ -21,17 +26,8 @@ jobs:
 
       - name: Pull, Retag, and Push Image
         run: |
-          # 1. 直接拉取官方已经做好的、稳定无错的稳定版镜像
           docker pull louislam/uptime-kuma:1
-          
-          # 2. 将镜像名称转换为全小写（GitHub 规定镜像路径必须全小写，否则会报错）
           LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE_TAG="ghcr.io/${LOWERCASE_REPO}:latest"
-          
-          # 3. 给官方镜像打上你自己的 GitHub 仓库标签
           docker tag louislam/uptime-kuma:1 $IMAGE_TAG
-          
-          # 4. 推送到你自己的 GitHub 仓库
           docker push $IMAGE_TAG
-          
-          echo "==== 恭喜！镜像已成功推送到你的专属仓库: $IMAGE_TAG ===="
