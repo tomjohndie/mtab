@@ -23,10 +23,23 @@ jobs:
 
       - name: Clone Official Uptime Kuma Source
         run: |
+          # 1. 克隆官方源码
           git clone --depth 1 https://github.com/louislam/uptime-kuma.git kuma-src
-          # 把官方的 Dockerfile 提到根目录，方便打包
+          
+          # 2. 复制 Dockerfile
           cp kuma-src/docker/dockerfile ./Dockerfile
-          cp -r kuma-src/* ./
+          
+          # 3. 只复制核心源码，不带入任何杂质文件
+          cp -r kuma-src/src kuma-src/server kuma-src/public kuma-src/package.json kuma-src/package-lock.json ./
+          # 如果官方源码里有 extra 或 db 目录，也顺便带上（保证依赖完整）
+          [ -d kuma-src/extra ] && cp -r kuma-src/extra ./ || true
+          [ -d kuma-src/db ] && cp -r kuma-src/db ./ || true
+
+          # 4. 删掉那个折腾人的 .npmrc 复制命令
+          sed -i '/\.npmrc/d' ./Dockerfile
+          
+          # 5. 【核心修复】在 npm ci 之前，强行插入切换国内淘宝镜像源的命令
+          sed -i '/RUN npm ci/i RUN npm config set registry https://registry.npmmirror.com' ./Dockerfile
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
