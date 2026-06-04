@@ -27,7 +27,14 @@ jobs:
       - name: Pull, Retag, and Push Image
         run: |
           docker pull louislam/uptime-kuma:1
+          
           LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG="ghcr.io/${LOWERCASE_REPO}:latest"
+          
+          # 【核心修改】在仓库名后面强行拼接 -kuma，将其变成独立的专属包
+          IMAGE_TAG="ghcr.io/${LOWERCASE_REPO}-kuma:latest"
+          
           docker tag louislam/uptime-kuma:1 $IMAGE_TAG
           docker push $IMAGE_TAG
+          
+          echo "==== 推送成功！你的专属拉取路径为: $IMAGE_TAG ===="
+
